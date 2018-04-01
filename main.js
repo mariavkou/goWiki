@@ -1,5 +1,5 @@
-var searchUrl = "https://en.wikipedia.org/w/api.php?action=opensearch&origin=*&format=json&formatversion=2&search=";
-//https://en.wikipedia.org/w/api.php?action=query&titles=Main%20Page&prop=revisions&rvprop=content&format=json&formatversion=2
+var searchUrl = 'https://en.wikipedia.org/w/api.php?action=opensearch&origin=*&format=json&formatversion=2&search=';
+var contentUrl = 'https://en.wikipedia.org/w/api.php?action=query&prop=revisions&rvprop=content&origin=*&format=json&formatversion=2&titles=';
 
 function loadJSON(file, callback) {   
     var xobj = new XMLHttpRequest();
@@ -17,15 +17,30 @@ function loadJSON(file, callback) {
 function goWiki() {
     var term = $('input:text').val();
     var url = searchUrl + term;
-    loadJSON(url, gotData, 'jsonp');
+    loadJSON(url, gotSearch, 'jsonp');
 }
 
-function gotData(data) {
+function gotSearch(data) {
     data = JSON.parse(data);
-    console.log(data[1]);
+    console.log(data);
     var len = data[1].length;
-    var index = Math.floor((Math.random() * 10) + 1);//give random article
-    console.log(data[1][index]);
+    var index = Math.floor(Math.random() * len);//give random article
+    var title = data[1][index];
+    title = title.replace(/\s+/g, '_');
+    console.log('Querying ' + title);
+    var url = contentUrl + title;
+    loadJSON(url, gotContent, 'jsonp');
+}
+
+function gotContent(data) {
+    data = JSON.parse(data);
+    var page = data.query.pages;
+    var pageId = Object.keys(data.query.pages)[0];
+    var content = page[pageId].revisions[0];
+    console.log(content);
+    var wordRegex = /\b\w{4,}\b/g;
+    var words = content.match(wordRegex);
+    console.log(words);
 }
 
 $(document).ready(function() {
